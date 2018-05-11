@@ -13,11 +13,9 @@ var sigpad = function(comport, tcpport) {
 		parity: 'odd'
 	});
 	
-	this.getSigpad = function() {
-		var sigpad = {
-			device: comport,
-			server: server
-		}
+	this.kill = function() {
+		port.close();
+		server.close();
 	}
 	
 	// The open event is always emitted

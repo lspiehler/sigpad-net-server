@@ -1,9 +1,10 @@
 var express = require('express'), 
 router = express.Router();
-var sigpad = require('../sigpad');
+var manager = require('../lib/manager');
 
 router.get('/test', function(req, res) {
-	res.send('test');
+	console.log(manager.list());
+	res.send(manager.list());
 });
 
 module.exports = router;

@@ -1,14 +1,11 @@
 var SerialPort = require('serialport');
-var sigpad = require('./sigpad');
+var manager = require('./lib/manager');
 var usbDetect = require('usb-detection');
 var express_ssl = require('./lib/express_ssl.js');
 var express = require('express');
 var bodyParser = require('body-parser')
 
 var app = express();
-
-var port = 13377;
-var sigpads = [];
 
 var exitHandler = function() {
 	usbDetect.stopMonitoring();
@@ -17,8 +14,7 @@ var exitHandler = function() {
 SerialPort.list().then(function(data) {
 	for(var i = 0; i <= data.length - 1; i++) {
 		if(data[i].manufacturer=='FTDI') {
-			sigpads.push(new sigpad(data[i], port));
-			port++;
+			let sig = manager.add(data[i]);
 		}
 	}
 	usbDetect.startMonitoring();
@@ -35,7 +31,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies.
 //app.set('view engine', 'html');
 //app.set('views', __dirname + '/views');
 
-app.use('/api/openssl', require('./api/sigpad'));
+app.use('/api/sigpad', require('./api/sigpad'));
 
 usbDetect.on('add', function(device) {
         console.log('Add: ', device);
