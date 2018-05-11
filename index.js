@@ -6,6 +6,7 @@ var express = require('express');
 var bodyParser = require('body-parser')
 
 var app = express();
+var rescan = false;
 
 var exitHandler = function() {
 	usbDetect.stopMonitoring();
@@ -34,15 +35,33 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies.
 app.use('/api/sigpad', require('./api/sigpad'));
 
 usbDetect.on('add', function(device) {
-        console.log('Add: ', device);
+	if(!rescan) {
+		rescan = true;
+	        console.log('USB addition detected, triggering rescan');
+		manager.rescan(function() {
+			rescan = false;
+		});
+	}
 });
 
 usbDetect.on('remove', function(device) {
-        console.log('Remove: ', device);
+	if(!rescan) {
+		rescan = true;
+	        console.log('USB removal detected, triggering rescan');
+		manager.rescan(function() {
+			rescan = false;
+		});
+	}
 });
 
 usbDetect.on('change', function(device) {
-        console.log('Remove: ', device);
+	if(!rescan) {
+		rescan = true;
+	        console.log('USB change detected, triggering rescan');
+		manager.rescan(function() {
+			rescan = false;
+		});
+	}
 });
 
 process.on('exit', function() {
