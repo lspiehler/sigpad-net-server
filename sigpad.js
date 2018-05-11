@@ -13,7 +13,12 @@ var sigpad = function(comport, tcpport) {
 		parity: 'odd'
 	});
 	
-	this.getComPort
+	this.getSigpad = function() {
+		var sigpad = {
+			device: comport,
+			server: server
+		}
+	}
 	
 	// The open event is always emitted
 	port.on('open', function() {

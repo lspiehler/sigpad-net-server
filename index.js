@@ -1,6 +1,11 @@
 var SerialPort = require('serialport');
 var sigpad = require('./sigpad');
 var usbDetect = require('usb-detection');
+var express_ssl = require('./lib/express_ssl.js');
+var express = require('express');
+var bodyParser = require('body-parser')
+
+var app = express();
 
 var port = 13377;
 var sigpads = [];
@@ -18,6 +23,19 @@ SerialPort.list().then(function(data) {
 	}
 	usbDetect.startMonitoring();
 });
+
+express_ssl.getSSL(function(sslOptions) {
+	var server = require('https').createServer(sslOptions, app).listen(443);
+});
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies.
+
+//app.engine('html', mustacheExpress());
+//app.set('view engine', 'html');
+//app.set('views', __dirname + '/views');
+
+app.use('/api/openssl', require('./api/sigpad'));
 
 usbDetect.on('add', function(device) {
         console.log('Add: ', device);
@@ -51,7 +69,7 @@ process.on('SIGUSR2', function() {
         process.exit();
 });
 
-process.on('uncaughtException', function() {
+/*process.on('uncaughtException', function() {
         usbDetect.stopMonitoring();
         process.exit();
-});
+});*/
