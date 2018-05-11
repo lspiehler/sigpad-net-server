@@ -34,6 +34,10 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies.
 
 app.use('/api/sigpad', require('./api/sigpad'));
 
+app.get('/', function(req, res) {
+	res.redirect('/api/sigpad/sigpads');
+});
+
 usbDetect.on('add', function(device) {
 	if(!rescan) {
 		rescan = true;
