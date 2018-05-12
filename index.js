@@ -4,6 +4,18 @@ var usbDetect = require('usb-detection');
 var express_ssl = require('./lib/express_ssl.js');
 var express = require('express');
 var bodyParser = require('body-parser')
+var http = require('http')
+
+var http = http.createServer(function (req, res) {
+	res.writeHead(301, {
+		Location: "https://" + req.headers.host
+	});
+	res.end();
+});
+
+http.listen(80, function() {
+	//listening on port 80
+});
 
 var app = express();
 var rescan = false;
