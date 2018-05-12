@@ -61,6 +61,36 @@ express_ssl.getSSL(function(sslOptions) {
 		}
 		usbDetect.startMonitoring();
 	});
+	
+	usbDetect.on('add', function(device) {
+		if(!rescan) {
+			rescan = true;
+				console.log('USB addition detected, triggering rescan');
+			manager.rescan(function() {
+				rescan = false;
+			});
+		}
+	});
+
+	usbDetect.on('remove', function(device) {
+		if(!rescan) {
+			rescan = true;
+				console.log('USB removal detected, triggering rescan');
+			manager.rescan(function() {
+				rescan = false;
+			});
+		}
+	});
+
+	usbDetect.on('change', function(device) {
+		if(!rescan) {
+			rescan = true;
+				console.log('USB change detected, triggering rescan');
+			manager.rescan(function() {
+				rescan = false;
+			});
+		}
+	});
 });
 
 //app.engine('html', mustacheExpress());
@@ -70,36 +100,6 @@ express_ssl.getSSL(function(sslOptions) {
 /*app.get('/', function(req, res) {
 	res.redirect('/api/sigpad/sigpads');
 });*/
-
-usbDetect.on('add', function(device) {
-	if(!rescan) {
-		rescan = true;
-	        console.log('USB addition detected, triggering rescan');
-		manager.rescan(function() {
-			rescan = false;
-		});
-	}
-});
-
-usbDetect.on('remove', function(device) {
-	if(!rescan) {
-		rescan = true;
-	        console.log('USB removal detected, triggering rescan');
-		manager.rescan(function() {
-			rescan = false;
-		});
-	}
-});
-
-usbDetect.on('change', function(device) {
-	if(!rescan) {
-		rescan = true;
-	        console.log('USB change detected, triggering rescan');
-		manager.rescan(function() {
-			rescan = false;
-		});
-	}
-});
 
 process.on('exit', function() {
         usbDetect.stopMonitoring();
