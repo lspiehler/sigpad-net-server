@@ -1,0 +1,134 @@
+<html>
+	<head>
+		<script type="text/javascript" src="bower_components/socket.io-client/dist/socket.io.js"></script>
+		<script>
+			function getDevices() {
+				
+				var request = new XMLHttpRequest();
+				request.open('GET', '/api/sigpad/sigpads', true);
+
+				request.onload = function() {
+					if (request.status >= 200 && request.status < 400) {
+						// Success!
+						var data = JSON.parse(request.responseText);
+						console.log(data);
+						var table = document.getElementById('devices');
+						for(var i = 0; i <= data.length - 1; i++) {
+							if(data[i].active) {
+								let row = table.insertRow();
+								let col1 = row.insertCell(0);
+								col1.innerText = data[i].name;
+								let col2 = row.insertCell(1);
+								col2.innerText = data[i].tcpport;
+								let col3 = row.insertCell(2);
+								col3.innerText = data[i].clients[0] || '';
+							}
+						}
+					} else {
+						// We reached our target server, but it returned an error
+
+					}
+				};
+
+				request.onerror = function() {
+					// There was a connection error of some sort
+				};
+
+				request.send();
+			}
+			window.onload = function() {
+				getDevices();
+			}
+		</script>
+	</head>
+	<body>
+		<table id="devices" border=1 width="500">
+			<thead></thead>
+			<tbody>
+				<tr>
+					<th style="width: 30%">Device Name</th><th style="width: 20%">TCP Port</th><th style="width: 50%">Connected Client</th>
+				</tr>
+			</tbody>
+			<tfoot></tfoot>
+		</table>
+		<script>
+			var sigpads = {};
+			var ctx;
+			var begin = false;
+			socket = io.connect('https://' + document.location.hostname, {transports:['websocket'], upgrade: false});
+			socket.on('message', function(data) {
+				if(data.message=='begin signature') {
+					console.log(data);
+					if(sigpads[data.tcpport]) {
+						sigpads[data.tcpport].begin = true;
+					} else {
+						var div = document.createElement('div');
+						var text = document.createElement('div');
+						text.style.position = 'absolute';
+						text.innerText = 'Device: ' + data.device + ' - TCP Port: ' + data.tcpport
+						div.style.border = '1px solid black';
+						div.style.height = '200px';
+						div.style.width = '600px';
+						var canvas = document.createElement('canvas');
+						canvas.height = 200;
+						canvas.width = 600;
+						div.appendChild(text);
+						div.appendChild(canvas);
+						document.body.append(div);
+						var ctx = canvas.getContext("2d");
+						var sigpad = {
+							ctx: ctx,
+							begin: true,
+							device: data.device
+						}
+						sigpads[data.tcpport] = sigpad;
+					}
+					/*ctx.beginPath();
+					ctx.strokeStyle = "black";
+					ctx.moveTo(50, 50);
+					ctx.lineTo(100, 100);
+					ctx.stroke();
+					//ctx.moveTo(50, 100);
+					ctx.lineTo(100, 150);
+					ctx.stroke();*/
+				}
+			});
+			socket.on('signaturedata', function(data) {
+				//ctx = canvas.getContext("2d");
+				let x = data.data.x / 3;
+				let y = data.data.y / 3;
+				if(sigpads[data.tcpport]) {
+					let sigpad = sigpads[data.tcpport];
+					if(sigpad.begin) {
+						console.log('new line');
+						sigpad.ctx.beginPath();
+						sigpad.ctx.strokeStyle = "black";
+						sigpad.ctx.moveTo(x, y);
+						sigpad.begin = false;
+					} else {
+						sigpad.ctx.lineTo(x, y);
+						sigpad.ctx.stroke();
+					}
+				}
+				//console.log(data.data.x);
+			});
+			socket.on('connect', function(data) {
+				//alert('connected');
+			});
+			socket.on('disconnect', function(data) {
+
+			});
+			socket.on('reload', function(data) {
+			
+			});
+			socket.on('devicechange', function(data) {
+				var table = document.getElementById('devices');
+				var rowCount = table.rows.length;
+				for (var x=rowCount-1; x>0; x--) {
+					table.deleteRow(x);
+				}
+				getDevices();
+			});
+		</script>
+	</body>
+</html>
