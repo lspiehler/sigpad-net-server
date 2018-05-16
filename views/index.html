@@ -55,6 +55,10 @@
 			var sigpads = {};
 			var ctx;
 			var begin = false;
+			function clearSignature(clearid){
+				var sigpadid = clearid.replace('clear', '');
+				sigpads[sigpadid].ctx.clearRect(0,0,sigpads[sigpadid].ctx.canvas.width,sigpads[sigpadid].ctx.canvas.height)
+			}
 			socket = io.connect('https://' + document.location.hostname, {transports:['websocket'], upgrade: false});
 			socket.on('message', function(data) {
 				if(data.message=='begin signature') {
@@ -62,19 +66,41 @@
 					if(sigpads[data.tcpport]) {
 						sigpads[data.tcpport].begin = true;
 					} else {
+						var container = document.createElement('div');
+						//container.style.float = 'none';
+						container.style.display = 'table-row';
+						container.style.border = '1px solid black';
 						var div = document.createElement('div');
+						//div.style.float = 'left';
+						div.style.display = 'table-cell';
+						var buttons = document.createElement('div');
+						//buttons.style.float = 'left';
+						//buttons.style.border = '1px solid black';
+						buttons.style.width = '200px';
+						//buttons.style.height = '10px';
+						buttons.style.display = 'table-cell';
+						//buttons.style.display = 'inline';
+						var clear = document.createElement('button');
+						clear.innerText = 'Clear';
+						clear.id = 'clear' + data.tcpport;
+						clear.addEventListener('click',function(e) {
+							clearSignature(e.target.id);
+						});
 						var text = document.createElement('div');
 						text.style.position = 'absolute';
 						text.innerText = 'Device: ' + data.device + ' - TCP Port: ' + data.tcpport
 						div.style.border = '1px solid black';
-						div.style.height = '200px';
+						//div.style.height = '10px';
 						div.style.width = '600px';
 						var canvas = document.createElement('canvas');
 						canvas.height = 200;
 						canvas.width = 600;
 						div.appendChild(text);
 						div.appendChild(canvas);
-						document.body.append(div);
+						container.appendChild(div);
+						buttons.appendChild(clear);
+						container.appendChild(buttons);
+						document.body.appendChild(container);
 						var ctx = canvas.getContext("2d");
 						var sigpad = {
 							ctx: ctx,
