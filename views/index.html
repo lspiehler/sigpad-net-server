@@ -28,10 +28,12 @@
 						// We reached our target server, but it returned an error
 
 					}
+					refreshing = false;
 				};
 
 				request.onerror = function() {
 					// There was a connection error of some sort
+					refreshing = false;
 				};
 
 				request.send();
@@ -55,6 +57,7 @@
 			var sigpads = {};
 			var ctx;
 			var begin = false;
+			var refreshing = false;
 			function clearSignature(clearid){
 				var sigpadid = clearid.replace('clear', '');
 				sigpads[sigpadid].ctx.clearRect(0,0,sigpads[sigpadid].ctx.canvas.width,sigpads[sigpadid].ctx.canvas.height)
@@ -148,12 +151,15 @@
 			
 			});
 			socket.on('devicechange', function(data) {
-				var table = document.getElementById('devices');
-				var rowCount = table.rows.length;
-				for (var x=rowCount-1; x>0; x--) {
-					table.deleteRow(x);
+				if(!refreshing) {
+					refreshing = true;
+					var table = document.getElementById('devices');
+					var rowCount = table.rows.length;
+					for (var x=rowCount-1; x>0; x--) {
+						table.deleteRow(x);
+					}
+					getDevices();
 				}
-				getDevices();
 			});
 		</script>
 	</body>
