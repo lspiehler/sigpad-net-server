@@ -65,30 +65,36 @@ express_ssl.getSSL(function(sslOptions) {
 	usbDetect.on('add', function(device) {
 		if(!rescan) {
 			rescan = true;
+			setTimeout(function() {
 				console.log('USB addition detected, triggering rescan');
-			manager.rescan(function() {
-				rescan = false;
-			});
+				manager.rescan(function() {
+					rescan = false;
+				});
+			}, 1000);
 		}
 	});
 
 	usbDetect.on('remove', function(device) {
 		if(!rescan) {
 			rescan = true;
+			setTimeout(function() {
 				console.log('USB removal detected, triggering rescan');
-			manager.rescan(function() {
-				rescan = false;
-			});
+				manager.rescan(function() {
+					rescan = false;
+				});
+			}, 1000);
 		}
 	});
 
 	usbDetect.on('change', function(device) {
 		if(!rescan) {
 			rescan = true;
+			setTimeout(function() {
 				console.log('USB change detected, triggering rescan');
-			manager.rescan(function() {
-				rescan = false;
-			});
+				manager.rescan(function() {
+					rescan = false;
+				});
+			}, 1000);
 		}
 	});
 });
