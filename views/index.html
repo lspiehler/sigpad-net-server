@@ -144,6 +144,9 @@
 			socket.on('connect', function(data) {
 				//alert('connected');
 			});
+			socket.on('clearsignature', function(data) {
+				clearSignature('clear' + data);
+			});
 			socket.on('disconnect', function(data) {
 
 			});

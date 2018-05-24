@@ -47,11 +47,22 @@ express_ssl.getSSL(function(sslOptions) {
 	app.engine('html', mustacheExpress());
 	app.set('view engine', 'html');
 	app.set('views', __dirname + '/views');
+	app.use(express.static(__dirname + '/views'));
 	app.use('/bower_components',  express.static(__dirname + '/bower_components'));
 	
 	app.use('/api/sigpad', require('./api/sigpad'));
 	
 	var manager = require('./lib/manager');
+	
+	io.sockets.on('connection',function (socket) {
+		console.log('connection')
+		socket.on(13377, function(data){
+			console.log(data);
+			let device = manager.getSigpadByPort(13377);
+			//console.log(device);
+			device.service.writeSocket(data);
+		})
+	});
 	
 	SerialPort.list().then(function(data) {
 		for(var i = 0; i <= data.length - 1; i++) {

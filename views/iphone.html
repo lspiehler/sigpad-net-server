@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=0.1, shrink-to-fit=no">
+		<script type="text/javascript" src="bower_components/socket.io-client/dist/socket.io.js"></script>
+		<style>
+			div.sigcontain {
+				border: 1px solid black;
+				overflow: hidden;
+				position: fixed;
+			}
+			div.block {
+				display: none;
+				position: absolute;
+			}
+			body {
+				margin: 0;
+				padding: 0;
+			}
+			canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="sigcontain" id="sigcontain">
+			<div id="text" style="position: absolute;"></div>
+			<canvas id="canvas"></canvas>
+		</div>
+		<div id="block" class="block">
+			<h1><span style="color: white; font-size: 200px;">Turn your phone sideways</span></h1>
+		</div>
+	</body>
+	<script>
+		function block() {
+			var blocker = document.getElementById('block');
+			// Portrait
+			blocker.style.width = window.innerWidth + 'px';
+			blocker.style.height = window.innerHeight + 'px';
+			blocker.style.zIndex = 10;
+			blocker.style.backgroundColor = 'blue';
+			blocker.style.display = 'block';
+		}
+		function clearSignature(clearid){
+			//var sigpadid = clearid.replace('clear', '');
+			ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height)
+		}
+		function unBlock() {
+			var blocker = document.getElementById('block');
+			blocker.style.display = 'none';
+		}
+		function readDeviceOrientation() {
+			var blocker = document.getElementById('block');
+			if (Math.abs(window.orientation) === 90) {
+				//alert('done');
+				unBlock();
+			} else {
+				block();
+			}
+		}
+		block();
+		function checkOrientation() {
+			readDeviceOrientation();
+		}
+		window.onorientationchange = function() {
+			if (Math.abs(window.orientation) === 90) {
+				checkOrientation();
+			} else {
+				setTimeout( function() {
+					checkOrientation();
+				}, 1000);
+			}
+		}
+		var count = 0;
+		var lastposition;
+		socket = io.connect('https://' + document.location.hostname, {transports:['websocket'], upgrade: false});
+		function handleTouch(data) {
+			var text = document.getElementById('text');
+			if(data.message=='end') {
+				text.innerText = 'End';
+				socket.emit(13377, lastposition);
+				socket.emit(13377, lastposition);
+				socket.emit(13377, lastposition);
+			}
+			var rect = canvas.getBoundingClientRect();
+			let eventx = data.event.clientX || data.event.touches[0].pageX;
+			let eventy = data.event.clientY || data.event.touches[0].pageY;
+			let x = (eventx - rect.left) / (rect.right - rect.left) * canvas.width;
+			let y = (eventy - rect.top) / (rect.bottom - rect.top) * canvas.height;
+			let xsector = Math.ceil(eventx / 127) + 2;
+			let xrelative = eventx % 127;
+			let ysector = Math.ceil(eventy / 127) + 2;
+			let yrelative = eventy % 127;
+			var div = document.getElementById('sigcontain');
+			if(data.message=='begin') {
+				lastposition = [228, xrelative, xsector, yrelative, ysector];
+				socket.emit(13377, [228, xrelative, xsector, yrelative, ysector]);
+				socket.emit(13377, [228, xrelative, xsector, yrelative, ysector]);
+				socket.emit(13377, [228, xrelative, xsector, yrelative, ysector]);
+				text.innerText = 'Begin ' + xsector + ' ' + xrelative;
+				ctx.beginPath();
+				ctx.strokeStyle = "black";
+				ctx.lineWidth = 1;
+				ctx.moveTo(x, y);
+			} else if(data.message=='move') {
+				lastposition = [228, xrelative, xsector, yrelative, ysector];
+				if(count >=2) {
+					socket.emit(13377, [xrelative, xsector, yrelative, ysector]);
+					count = 0;
+				} else {
+					count++;
+				}
+				socket.emit(13377, [229, xrelative, xsector, yrelative, ysector]);
+				text.innerText = JSON.stringify(eventx + ' x ' + eventy);
+				ctx.lineTo(x, y);
+				ctx.stroke();
+			}
+		}
+		document.body.addEventListener('touchmove', function(e) {
+				e.preventDefault();
+
+		}, false);
+		//alert(screen.height);
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		var div = document.getElementById('sigcontain');
+		canvas.addEventListener('touchstart', function(e) {
+				handleTouch({
+					message: 'begin',
+					event: e
+				});
+				e.preventDefault();
+		}, false);
+		socket.on('clearsignature', function(data) {
+			clearSignature('clear' + data);
+		});
+		canvas.addEventListener('touchcancel', function(e) {
+			//alert('happened');
+			handleTouch({
+				message: 'end',
+				event: e
+			});
+			e.preventDefault();
+		}, false);
+		canvas.addEventListener('touchend', function(e) {
+			//alert('happened');
+			handleTouch({
+				message: 'end',
+				event: e
+			});
+			e.preventDefault();
+		}, false);
+		canvas.addEventListener('mousedown', function(e) {
+				handleTouch({
+					message: 'begin',
+					event: e
+				});
+				//e.preventDefault();
+		}, false);
+		canvas.addEventListener('mousemove', function(e) {
+				handleTouch({
+					message: 'move',
+					event: e
+				});
+				e.preventDefault();
+		}, false);
+		canvas.addEventListener('touchmove', function(e) {
+				handleTouch({
+					message: 'move',
+					event: e
+				});
+				e.preventDefault();
+		}, false);
+		div.style.width = 2000 + 'px';
+		div.style.height = 600 + 'px';
+	</script>
+</html>
