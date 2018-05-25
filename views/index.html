@@ -65,7 +65,7 @@
 			socket = io.connect('https://' + document.location.hostname, {transports:['websocket'], upgrade: false});
 			socket.on('message', function(data) {
 				if(data.message=='begin signature') {
-					console.log(data);
+					//console.log(data);
 					if(sigpads[data.tcpport]) {
 						sigpads[data.tcpport].begin = true;
 					} else {
@@ -129,12 +129,13 @@
 				if(sigpads[data.tcpport]) {
 					let sigpad = sigpads[data.tcpport];
 					if(sigpad.begin) {
-						console.log('new line');
+						//console.log('new line');
 						sigpad.ctx.beginPath();
 						sigpad.ctx.strokeStyle = "black";
 						sigpad.ctx.moveTo(x, y);
 						sigpad.begin = false;
 					} else {
+						console.log(x, y);
 						sigpad.ctx.lineTo(x, y);
 						sigpad.ctx.stroke();
 					}

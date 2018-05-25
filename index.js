@@ -57,7 +57,7 @@ express_ssl.getSSL(function(sslOptions) {
 	io.sockets.on('connection',function (socket) {
 		console.log('connection')
 		socket.on(13377, function(data){
-			console.log(data);
+			//console.log(data);
 			let device = manager.getSigpadByPort(13377);
 			//console.log(device);
 			device.service.writeSocket(data);
