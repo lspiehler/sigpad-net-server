@@ -61,10 +61,20 @@
 				let eventy = data.event.clientY || data.event.touches[0].pageY;
 				let x = (eventx - rect.left) / (rect.right - rect.left) * canvas.width;
 				let y = (eventy - rect.top) / (rect.bottom - rect.top) * canvas.height;
-				let xsector = Math.ceil(eventx / 127) + 2;
 				let xrelative = eventx % 127;
-				let ysector = Math.ceil(eventy / 127) + 2;
+				let xsector;
+				if(xrelative==0) {
+					xsector = Math.ceil(eventx / 127) + 3;
+				} else {
+					xsector = Math.ceil(eventx / 127) + 2;
+				}
 				let yrelative = eventy % 127;
+				let ysector;
+				if(yrelative==0) {
+					ysector = Math.ceil(eventy / 127) + 3;
+				} else {
+					ysector = Math.ceil(eventy / 127) + 2;
+				}
 				var div = document.getElementById('sigcontain');
 				if(data.message=='begin') {
 					lastposition = [228, xrelative, xsector, yrelative, ysector];
@@ -84,6 +94,7 @@
 					//} else {
 					//	count++;
 					//}
+					//console.log([229, xrelative, xsector, yrelative, ysector]);
 					socket.emit(13377, [229, xrelative, xsector, yrelative, ysector]);
 					text.innerText = JSON.stringify(eventx + ' x ' + eventy);
 					ctx.lineTo(x, y);
